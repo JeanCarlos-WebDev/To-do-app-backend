@@ -21,7 +21,7 @@ export class AuthService {
         }
       })
       const token = await this.jwt.signAsync(user, {secret: this.config.get('TOKEN_SECRET')})
-      return token;
+      return { access_token: token };
     }
     catch (err) {
       if (err?.name == "PrismaClientKnownRequestError") {
