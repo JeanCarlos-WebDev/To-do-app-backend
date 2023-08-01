@@ -2,12 +2,21 @@
   "name": "backend-v2",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "Jean Sifontes",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "db:test:rm": "docker compose rm test-db -s -f -v ",
+    "db:test:up": "docker compose up test-db -d",
+    "db:test:restart": "pnpm run db:test:rm && pnpm run db:test:up && pnpm run prisma:test:migration",
+    "prisma:test:migration": " dotenv -e .env.test -- prisma migrate dev",
+    "db:dev:rm": "docker compose rm dev-db -s -f -v ",
+    "db:dev:up": "docker compose up dev-db -d",
+    "db:prisma:migration": "prisma db push",
+    "db:dev:restart": "pnpm run db:dev:rm && pnpm run db:dev:up && pnpm run db:prisma:migration",
+    "db:dev:down": "docker compose down",
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "p rettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -17,8 +26,13 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prisma:migrate": "prisma migrate dev"
+    "pretest:e2e": "pnpm run db:test:restart",
+    "test:e2e": " dotenv -e .env.test -- jest --watch --config ./test/jest-e2e.json",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prod:dev": "pnpm dlx prisma db push && pnpm run start:prod",
+    "prod": "npm run prisma:deploy && npm run start:prod"
+
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -32,13 +46,13 @@
     "argon2": "^0.30.3",
     "class-transformer": "^0.3.1",
     "class-validator": "^0.14.0",
+    "dotenv-cli": "^7.2.1",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "postgres": "^3.3.5",
     "prisma": "^4.16.1",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1",
-    "swagger": "^0.7.5"
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

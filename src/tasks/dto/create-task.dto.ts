@@ -1,4 +1,4 @@
-import { IsDate, IsNotEmpty, IsNumber, IsString, MaxLength} from "class-validator";
+import {IsNotEmpty, IsNumber, IsString, MaxLength, } from "class-validator";
 
 export class CreateTaskDto {
     @IsNotEmpty()
@@ -14,9 +14,6 @@ export class CreateTaskDto {
     @IsNumber()
     status: number;
 
-    @IsNotEmpty()
-    @IsNumber()
-    pomodoros: number;
 
     @IsNotEmpty()
     @IsNumber()
@@ -25,15 +22,8 @@ export class CreateTaskDto {
     @IsNumber()
     number_of_pomodoros?: number;
 
-    @IsNotEmpty()
-    @IsDate()
-    expiration_day?: Date;
-
-    @IsNotEmpty()
-    @IsNumber()
-    user_id: number
-
-    @IsNotEmpty()
+    expiration_date?: string;
+    
     category_id?: number | null
 
 }

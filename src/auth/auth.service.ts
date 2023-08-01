@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as argon from 'argon2'
@@ -21,7 +21,7 @@ export class AuthService {
         }
       })
       const token = await this.jwt.signAsync(user, {secret: this.config.get('TOKEN_SECRET')})
-      return { access_token: token };
+      return { token };
     }
     catch (err) {
       if (err?.name == "PrismaClientKnownRequestError") {
@@ -37,13 +37,17 @@ export class AuthService {
       where: {
         email: CreateAuthDto.email
       }
-    })
+  })
+  if (!user) {
+    throw new ForbiddenException('Credentials are wrong')
+  }
   const isPassword = await argon.verify(user.hash, CreateAuthDto.password)
   if (!isPassword) {
-    throw new UnauthorizedException('Credentials are wrong')
+    throw new ForbiddenException('Credentials are wrong')
   }
+
   delete user.hash 
   const token = await this.jwt.signAsync(user, {secret: this.config.get('TOKEN_SECRET')})
-  return token
+  return {token}
   }
 }

@@ -1,0 +1,16 @@
+version: '1.0.0'
+services:
+  backend:
+    build: .
+    ports:
+      - "3000:3000"
+    links:
+      - postgres
+  postgres: 
+    image: postgres:15
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=to_do_app

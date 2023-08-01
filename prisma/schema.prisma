@@ -24,6 +24,7 @@ model categories {
   user users @relation(fields: [user_id], references: [id])
   user_id Int
   task tasks[]
+  @@unique([title, user_id], name: "uniqueTitleByUser" )
 }
 
 model tasks {
@@ -33,13 +34,13 @@ model tasks {
   status Int 
   pomodoros Int
   number_of_pomodoros Int
-  expiration_date DateTime?
+  expiration_date DateTime? @db.Date
   create_at DateTime? @default(now())
   update_at DateTime? @updatedAt
   importance Int
   user users @relation(fields: [user_id], references: [id])
   user_id Int
-  category categories? @relation(fields: [category_id], references: [id])
+  category categories? @relation(fields: [category_id], references: [id], onDelete: Cascade)
   category_id Int?
 
 

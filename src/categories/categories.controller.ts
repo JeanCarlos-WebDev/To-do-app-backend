@@ -1,11 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, ParseIntPipe} from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { GetUser } from 'src/auth/decorator';
-import type { users as User}  from '@prisma/client';
+import { GetUser } from '../auth/decorator';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('categories')
@@ -13,26 +12,27 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto, @GetUser('id') user: Pick<User, 'id'>) {
-    return this.categoriesService.create({...createCategoryDto, user_id: user.id});
+  create(@Body() createCategoryDto: CreateCategoryDto, @GetUser('id') user: number) {
+    return this.categoriesService.create(createCategoryDto, user);
   }
   @Get()
-  findAll(@GetUser() user: User ) {
-    return this.categoriesService.findAll(user.id);
+  findAll(@GetUser('id') user_id: number ) {
+    return this.categoriesService.findAll(user_id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number, @GetUser('id') user: User) {
-    return this.categoriesService.findOne(id, user.id);
+  findOne(@Param('id') id: string, @GetUser('id') user_id: number) {
+    // if(typeof parseInt(id) == 'number' ) return this.categoriesService.findOne(id, user_id);
+    return this.categoriesService.findByTitle(id, user_id)
   }
 
-  @Patch(':id')
-  update(@Param('id') id: number, @Body() updateCategoryDto: UpdateCategoryDto, @GetUser('id') user: User) {
-    return this.categoriesService.update(id, updateCategoryDto, user.id);
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto, @GetUser('id') user_id: number) {
+    return this.categoriesService.update(parseInt(id), updateCategoryDto, user_id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.categoriesService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.categoriesService.remove(parseInt(id));
   }
 }

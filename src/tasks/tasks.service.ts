@@ -1,19 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 @Injectable()
 export class TasksService {
   constructor(private prisma: PrismaService){}
-  async create(createTaskDto: CreateTaskDto) {
+  async create(createTaskDto: CreateTaskDto, user_id: number) {
     const task = await this.prisma.tasks.create({
       data: {
         title: createTaskDto.title,
         description: createTaskDto.description,
         status: createTaskDto.status,
-        pomodoros: createTaskDto.pomodoros,
+        pomodoros: 0,
+        expiration_date: createTaskDto?.expiration_date,
         number_of_pomodoros: createTaskDto['number_of_pomodoros'],
-        user_id: createTaskDto.user_id,
+        user_id,
         importance: createTaskDto.importance,
         category_id: createTaskDto.category_id
       }
@@ -40,16 +41,47 @@ export class TasksService {
   }
 
   async findByCategoryTitle(category_title: string, user_id: number) {
-    const category = await this.prisma.categories.findFirstOrThrow({
+    if (category_title == 'null') {
+      return await this.prisma.tasks.findMany({where:{user_id, category_id: null}})
+    }
+    const category = await this.prisma.tasks.findMany({
       where: {
-        title: category_title,
-        user_id
+        user_id,
+        category: {
+          title: category_title,
+          user_id: user_id
+        }
       }
     })
-    return await this.findByCategory(category.id, user_id )
+    return await category
   }
 
-  async findAll(user_id: number) {
+  async findAll(user_id: number, importance?: number, expiration_date?: string) {
+    //Find all tasks with the importance of 1 or 2
+    if (importance) {
+      const importantTasks = await this.prisma.tasks.findMany({
+        where: {
+          user_id,
+          importance: {
+            in: [1, 2]
+          }
+        }
+      })
+      return importantTasks
+    }
+
+    if (expiration_date) {
+      const TasksByExpirationDate = await this.prisma.tasks.findMany({
+        where: {
+          user_id,
+          expiration_date: {
+            equals: expiration_date
+          }
+        }
+      })
+      return TasksByExpirationDate
+    }
+
     const tasks = await this.prisma.tasks.findMany({
       where: {
         user_id
@@ -67,22 +99,26 @@ export class TasksService {
     }
   }
 
-  async update(id: number, updateTaskDto: UpdateTaskDto) {
+  async update(id: number, updateTaskDto: UpdateTaskDto, user_id: number) {
     try {
       const task = await this.prisma.tasks.update({
         where: { id }, data: {
+          category_id: updateTaskDto.category_id,
+          update_at: new Date().toISOString(),
           title: updateTaskDto.title,
           description: updateTaskDto.description,
+          expiration_date: updateTaskDto.expiration_date,
           status: updateTaskDto.status,
           pomodoros: updateTaskDto.pomodoros,
           number_of_pomodoros: updateTaskDto['number_of_pomodoros'],
-          user_id: updateTaskDto.user_id,
+          user_id,
           importance: updateTaskDto.importance,
         }
       })
       
       return task
     } catch (err) {
+      console.log(err)
       throw new NotFoundException('Task not found')
     }
   }

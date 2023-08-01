@@ -13,4 +13,10 @@ export class PrismaService extends PrismaClient {
                 
         })
     }
+    async cleanDB() {
+        await this.categories.deleteMany();
+        await this.tasks.deleteMany()
+        await this.users.deleteMany();
+        console.log('Database cleaned sucessfuly')
+    }
 }
